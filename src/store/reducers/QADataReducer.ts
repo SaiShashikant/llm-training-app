@@ -1,8 +1,7 @@
 // src/store/reducers/QADataModelSlice.ts
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {QADataModel} from "../../models/QADataModel";
-
 
 
 const initialState: QADataModel[] = [];
@@ -21,5 +20,5 @@ const QADataModelSlice = createSlice({
     },
 });
 
-export const { setQADataModelReducer, addQADataModelReducer } = QADataModelSlice.actions;
+export const {setQADataModelReducer, addQADataModelReducer} = QADataModelSlice.actions;
 export default QADataModelSlice.reducer;

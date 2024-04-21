@@ -1,8 +1,7 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
+import {useDispatch, useSelector} from 'react-redux';
+import {RootState} from '../store';
 import {QADataModel} from "../models/QADataModel";
-import {APIDataModel} from "../models/APIDataModel";
 import {setQADataModelReducer} from "../store/reducers/QADataReducer";
 
 
@@ -16,7 +15,7 @@ const QATable: React.FC<QATableProps> = () => {
 
     const handleSetQAData = (newData: QADataModel[]) => {
         dispatch(setQADataModelReducer(newData)); // Dispatch the action to update the QA data in the Redux store
-    };
+    }
 
 
 

@@ -1,13 +1,15 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import QATable from './QATable';
-import axios, { AxiosResponse } from 'axios';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
+import axios, {AxiosResponse} from 'axios';
+import {useDispatch, useSelector} from 'react-redux';
+import {RootState} from '../store';
 import {APIDataModel} from "../models/APIDataModel";
 import {QADataModel} from "../models/QADataModel";
 import {setQADataReducer} from "../store/reducers/QADataSlice";
+import {setAPIDataReducer} from "../store/reducers/APIDataReducer";
 
-interface BodyProps {}
+interface BodyProps {
+}
 
 const Body: React.FC<BodyProps> = () => {
     const dispatch = useDispatch();
@@ -23,27 +25,32 @@ const Body: React.FC<BodyProps> = () => {
         }
     }
 
+    const setQADataReducer = (data: any) => {
+        dispatch({ type: 'SET_QA_DATA', payload: data });
+    };
+
     useEffect(() => {
         fetchData()
             .then(data => {
-                const data_items=data.items;
+                const data_items = data.items;
                 const convertedData: Record<string, QADataModel> = {};
                 data_items.forEach((item, index) => {
                     convertedData[`QA ${index + 1}`] = {
+
                         id: item.id,
                         question: item.question,
                         answer: item.answer
                     };
                 });
                 // @ts-ignore
-                dispatch(setQADataReducer(convertedData));
+                setQADataReducer(convertedData);
             })
             .catch(error => {
                 console.error('Error fetching QA data:', error);
             });
-    }, [dispatch]);
+    }, [dispatch,qaData]);
 
-    // @ts-ignore
+
     // @ts-ignore
     return (
         <div className="w-full m-6 p-4">
@@ -146,9 +153,10 @@ const Body: React.FC<BodyProps> = () => {
                         Clear Search
                     </button>
                 </div>
+
             </div>
 
-            <QATable data_items={qaData} />
+            <QATable data_items={qaData}/>
 
         </div>
     );

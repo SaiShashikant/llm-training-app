@@ -1,6 +1,6 @@
 // src/store/reducers/qaDataSlice.ts
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
 interface QADataReducer {
     id: number;
@@ -23,6 +23,6 @@ const qaDataSlice = createSlice({
         // You can add more actions here
     },
 });
-
-export const { setQADataReducer, addQADataReducer } = qaDataSlice.actions;
+// console.log(qaDataSlice)
+export const {setQADataReducer, addQADataReducer} = qaDataSlice.actions;
 export default qaDataSlice.reducer;

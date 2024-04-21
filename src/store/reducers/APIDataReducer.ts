@@ -1,9 +1,7 @@
 // src/store/reducers/qaDataSlice.ts
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {APIDataModel} from "../../models/APIDataModel";
-
-
 
 
 const initialState: APIDataModel[] = [];
@@ -22,5 +20,5 @@ const apiDataSlice = createSlice({
     },
 });
 
-export const { setAPIDataReducer, addAPIDataReducer } = apiDataSlice.actions;
+export const {setAPIDataReducer, addAPIDataReducer} = apiDataSlice.actions;
 export default apiDataSlice.reducer;
