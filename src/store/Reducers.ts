@@ -1,10 +1,10 @@
 // src/store/reducers.ts
 
 import {combineReducers} from '@reduxjs/toolkit';
-import QADataReducer from "./reducers/QADataReducer";
+import APIDataReducer from "./reducers/APIDataReducer";
 
 const rootReducer = combineReducers({
-    qaData: QADataReducer,
+    apiData: APIDataReducer,
     // Add more reducers as needed
 });
 // console.log(rootReducer)

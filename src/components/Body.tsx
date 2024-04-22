@@ -1,21 +1,15 @@
 import React, {useEffect} from 'react';
 import QATable from './QATable';
 import axios, {AxiosResponse} from 'axios';
-import {useDispatch, useSelector} from 'react-redux';
-import {RootState} from '../store';
+import {useDispatch} from 'react-redux';
 import {APIDataModel} from "../models/APIDataModel";
-import {QADataModel} from "../models/QADataModel";
-import {setQADataReducer} from "../store/reducers/QADataSlice";
 import {setAPIDataReducer} from "../store/reducers/APIDataReducer";
 
-interface BodyProps {
-}
 
-const Body: React.FC<BodyProps> = () => {
+const Body: React.FC = () => {
     const dispatch = useDispatch();
-    const qaData = useSelector((state: RootState) => state.qaData);
 
-    async function fetchData() {
+    async function fetchData(): Promise<APIDataModel> {
         try {
             const response: AxiosResponse<APIDataModel> = await axios.get<APIDataModel>('http://localhost:5000/api/data');
             return response.data;
@@ -25,31 +19,18 @@ const Body: React.FC<BodyProps> = () => {
         }
     }
 
-    const setQADataReducer = (data: any) => {
-        dispatch({ type: 'SET_QA_DATA', payload: data });
-    };
-
     useEffect(() => {
+        console.log('Effect triggered');
         fetchData()
             .then(data => {
-                const data_items = data.items;
-                const convertedData: Record<string, QADataModel> = {};
-                data_items.forEach((item, index) => {
-                    convertedData[`QA ${index + 1}`] = {
-
-                        id: item.id,
-                        question: item.question,
-                        answer: item.answer
-                    };
-                });
-                // @ts-ignore
-                setQADataReducer(convertedData);
+                dispatch(setAPIDataReducer(data));
+                console.log("useEffect:fetchData:then::API Data", data);
             })
             .catch(error => {
                 console.error('Error fetching QA data:', error);
             });
-    }, [dispatch,qaData]);
-
+    }, [dispatch]);
+    console.log('Component rendered');
 
     // @ts-ignore
     return (
@@ -156,8 +137,7 @@ const Body: React.FC<BodyProps> = () => {
 
             </div>
 
-            <QATable data_items={qaData}/>
-
+            <QATable/>
         </div>
     );
 };

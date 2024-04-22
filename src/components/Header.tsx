@@ -5,7 +5,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = () => {
-    const {showToast, handleImport, handleExport} = useToast();
+    const {handleImport, handleExport} = useToast();
 
     const [isOpen, setIsOpen] = useState(false);
 

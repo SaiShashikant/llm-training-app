@@ -1,23 +1,11 @@
 import React from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import {RootState} from '../store';
-import {QADataModel} from "../models/QADataModel";
-import {setQADataModelReducer} from "../store/reducers/QADataReducer";
+import {APIDataModel} from "../models/APIDataModel";
 
 
-interface QATableProps {
-    data_items: QADataModel[];
-}
-
-const QATable: React.FC<QATableProps> = () => {
-    const dispatch = useDispatch();
-    const QADataModel = useSelector((state: RootState) => state.qaData); // Assuming qaData is the relevant state in your Redux store
-
-    const handleSetQAData = (newData: QADataModel[]) => {
-        dispatch(setQADataModelReducer(newData)); // Dispatch the action to update the QA data in the Redux store
-    }
-
-
+const QATable: React.FC = () => {
+    const apiData = useSelector((state: RootState) => state.apiData) as APIDataModel;
 
     return (
         <div className="w-full flex flex-col items-center">
@@ -25,7 +13,7 @@ const QATable: React.FC<QATableProps> = () => {
                 <div>
                     <h1 className="text-xl font-bold my-4">LLM Training Data</h1>
                     <div>
-                        <p>{QADataModel.length > 0 ? `Total Q&A Pairs: ${QADataModel.length}` : 'No Q&A pairs available.'}</p>
+                        <p>{apiData.items.length > 0 ? `Total Q&A Pairs: ${apiData.items.length}` : 'No Q&A pairs available.'}</p>
                     </div>
                 </div>
                 <div className="ml-auto">
@@ -57,7 +45,7 @@ const QATable: React.FC<QATableProps> = () => {
                     </tr>
                     </thead>
                     <tbody>
-                    {QADataModel.map((item) => (
+                    {apiData.items.map(item => (
                         <tr key={item.id}>
                             <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm col-id">
                                 <div className="flex items-center">{item.id}</div>
@@ -108,7 +96,6 @@ const QATable: React.FC<QATableProps> = () => {
                 </div>
             </div>
         </div>
-
     );
 };
 
