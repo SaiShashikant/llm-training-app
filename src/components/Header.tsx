@@ -1,11 +1,15 @@
 import React, {useState} from "react";
 import {useToast} from './ToastContext';
+import {checkDuplicates} from "../store/reducers/APIDataReducer";
+import {useDispatch} from "react-redux";
 
 interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = () => {
-    const {handleImport, handleExport} = useToast();
+    const {handleCSVImport, handleJSONLImport, handleExport ,handleExportBackup} = useToast();
+
+    const dispatch = useDispatch();
 
     const [isOpen, setIsOpen] = useState(false);
 
@@ -13,12 +17,24 @@ const Header: React.FC<HeaderProps> = () => {
         setIsOpen(!isOpen);
     };
 
-    const handleImportClick = () => {
-        handleImport(); // Call the function to show the import popup
+    const handleCSVImportClick = () => {
+        handleCSVImport(); // Call the function to show the import popup
+    };
+
+    const handleJSONLImportClick = () => {
+        handleJSONLImport(); // Call the function to show the import popup
     };
 
     const handleExportClick = () => {
         handleExport(); // Call the function to show the export popup
+    };
+
+    function handleExportClickBackup() {
+        handleExportBackup(); //
+    }
+
+    const handleCheckDuplicates = () => {
+        dispatch(checkDuplicates());
     };
 
     return (
@@ -65,7 +81,7 @@ const Header: React.FC<HeaderProps> = () => {
                                 <li>
                                     <a
                                         href="#"
-                                        onClick={handleImportClick}
+                                        onClick={handleCSVImportClick}
                                         className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                                     >
                                         Import CSV to JSONL
@@ -74,7 +90,7 @@ const Header: React.FC<HeaderProps> = () => {
                                 <li>
                                     <a
                                         href="#"
-                                        onClick={handleImportClick}
+                                        onClick={handleJSONLImportClick}
                                         className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                                     >
                                         Import JSONL to DB
@@ -92,7 +108,7 @@ const Header: React.FC<HeaderProps> = () => {
                                 <li>
                                     <a
                                         href="#"
-                                        onClick={handleExportClick}
+                                        onClick={handleExportClickBackup}
                                         className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                                     >
                                         Backup DB
@@ -101,7 +117,7 @@ const Header: React.FC<HeaderProps> = () => {
                                 <li>
                                     <a
                                         href="#"
-                                        onClick={handleExportClick}
+                                        onClick={handleCheckDuplicates}
                                         className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                                     >
                                         Check Duplicates
@@ -110,10 +126,19 @@ const Header: React.FC<HeaderProps> = () => {
                                 <li>
                                     <a
                                         href="#"
-                                        onClick={handleExportClick}
+
                                         className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                                     >
                                         Bulk Remove Text
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="#"
+
+                                        className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                                    >
+                                        AI FAQ Generator
                                     </a>
                                 </li>
                             </ul>

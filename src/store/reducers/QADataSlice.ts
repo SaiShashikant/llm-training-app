@@ -8,6 +8,8 @@ interface QADataReducer {
     answer: string;
 }
 
+
+
 const initialState: QADataReducer[] = [];
 
 const qaDataSlice = createSlice({
@@ -20,6 +22,7 @@ const qaDataSlice = createSlice({
         addQADataReducer(state, action: PayloadAction<QADataReducer>) {
             state.push(action.payload);
         },
+
         // You can add more actions here
     },
 });
