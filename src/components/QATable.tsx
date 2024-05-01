@@ -2,31 +2,33 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../store';
 import {APIDataModel} from "../models/APIDataModel";
-import {useToast} from "./ToastContext";
 import striptags from 'striptags';
-import {deleteQAPair} from "../store/reducers/APIDataReducer";
+import {setAPIDataReducer} from "../store/reducers/APIDataReducer";
+import AddQAPopup from "./AddQAPopup";
+import {CKEditor} from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import {updateAnswer} from "../models/APIManager";
 
 
 const QATable: React.FC = () => {
     const apiData = useSelector((state: RootState) => state.apiData) as APIDataModel;
-    const {addqaPair} = useToast();
-    const dispatch = useDispatch();
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(apiData.qa_per_page); // Number of items to display per page
     const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
     const [editedQuestion, setEditedQuestion] = useState<string>('');
     const [editingAnswerId, setEditingAnswerId] = useState<string | null>(null);
     const [editedAnswer, setEditedAnswer] = useState<string>('');
-
+    const dispatch = useDispatch();
+    const [showAddPopup, setShowAddPopup] = useState(false);
 
 
     useEffect(() => {
-        // Update itemsPerPage when apiData changes
-        setItemsPerPage(apiData.qa_per_page);
-    }, [apiData.qa_per_page]);
+        // console.log('UseEffect of QATable',(apiData.items.length))
+        dispatch(setAPIDataReducer(apiData));
+
+    }, [dispatch, apiData]);
 
     // Calculate total number of pages
-    const totalPages = Math.ceil(apiData.items.length / itemsPerPage);
+    const totalPages = Math.ceil(apiData.items.length / apiData.total_results_count);
 
     // Function to handle page change
     const handlePageChange = (pageNumber: number) => {
@@ -36,20 +38,10 @@ const QATable: React.FC = () => {
         }
     };
 
-
-    // Calculate start and end index of items to display on current page
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, apiData.items.length);
-
-
-    function addQAPairToast() {
-        addqaPair();
-    }
-
     const toggleQuestionEditor = (itemId: string) => {
         if (itemId === editingQuestionId) {
             // Save the edited question
-            fetch('/api/update_question', {
+            fetch('http://localhost:5000/api/update_question', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -58,43 +50,42 @@ const QATable: React.FC = () => {
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data.message, false); // Handle success or error message
+                    console.log(data.message); // Handle success or error message
                 })
                 .catch(error => {
-                    console.log('Error updating question : ' + error, true); // Handle success or error message
+                    console.log('Error updating question : ' + error); // Handle success or error message
                 });
 
             setEditingQuestionId(null);
         } else {
             // Enable editing
             setEditingQuestionId(itemId);
+            console.log("else part editing")
             // Get the current question text from your data source
             const questionText = apiData.items.find(item => String(item.id) === itemId)?.question || '';
             setEditedQuestion(questionText);
         }
     };
 
-    const handleQuestionChange = (e: React.ChangeEvent<HTMLDivElement>) => {
-        setEditedQuestion(e.target.textContent || ''); // Use textContent or innerHTML based on your requirement
-    };
     const toggleAnswerEditor = (itemId: string) => {
         if (itemId === editingAnswerId) {
             // Save the edited answer
-            fetch('/api/update_answer', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({item_id: itemId, new_answer: editedAnswer}),
-            })
+            console.log("Edited answer from fetch", editedAnswer, " ,Item ID: ", itemId);
+            updateAnswer(itemId, editedAnswer)
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data.message, false); // Handle success or error message
+                    console.log(data.message); // Handle success or error message
+                    apiData.items = apiData.items.map(item => {
+                        if (item.id === parseInt(itemId)) {
+                            return {...item, answer: editedAnswer};
+                        }
+                        return item;
+                    });
+                    dispatch(setAPIDataReducer(apiData));
                 })
                 .catch(error => {
-                    console.log('Error updating answer : ' + error, true); // Handle success or error message
+                    console.error('Error updating answer : ' + error); // Handle success or error message
                 });
-
             setEditingAnswerId(null);
         } else {
             // Enable editing
@@ -105,13 +96,9 @@ const QATable: React.FC = () => {
         }
     };
 
-    const handleAnswerChange = (e: React.ChangeEvent<HTMLDivElement>) => {
-        setEditedAnswer(e.target.textContent || ''); // Use textContent or innerHTML based on your requirement
-    };
-
     const handleDelete = (itemId: number) => {
         if (window.confirm('Are you sure you want to delete this item?')) {
-            dispatch(deleteQAPair(itemId));
+
         }
     };
 
@@ -121,17 +108,18 @@ const QATable: React.FC = () => {
                 <div>
                     <h1 className="text-xl font-bold my-4">LLM Training Data</h1>
                     <div>
-                        <p>{apiData.items.length > 0 ? `Total Q&A Pairs: ${apiData.items.length}` : 'No Q&A pairs available.'}</p>
+                        <p>{apiData.items.length > 0 ? `Total Q&A Pairs: ${apiData.total_results_count}` : 'No Q&A pairs available.'}</p>
                     </div>
                 </div>
                 <div className="ml-auto">
                     <button
                         type="button"
-                        onClick={() => addQAPairToast()}
+                        onClick={() => setShowAddPopup(true)} // Open the popup on button click
                         className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
                     >
                         Add new QA Pair
                     </button>
+                    {showAddPopup && <AddQAPopup onClose={() => setShowAddPopup(false)}/>}
                 </div>
             </div>
 
@@ -161,31 +149,35 @@ const QATable: React.FC = () => {
                             </td>
                             <td className="px-5 py-5 border-b w-1/4 border-gray-200 bg-white text-sm col-question">
 
-                                    {editingQuestionId === String(item.id) ? (
-                                        <input
-                                            type="text"
-                                            className="px-5 py-5 border-b w-full border-gray-200 bg-white text-sm col-question"
-                                            value={editedQuestion}
-                                            onChange={(e) => setEditedQuestion(e.target.value)}
-                                            onBlur={() => toggleQuestionEditor(String(item.id))}
-                                        />
-                                    ) : (
-                                        <div className="flex items-center w-full">{item.question}</div>
-                                    )}
+                                {editingQuestionId === String(item.id) ? (
+                                    <input
+                                        type="text"
+                                        className="px-5 py-5 border-b w-full border-gray-200 bg-white text-sm col-question"
+                                        value={editedQuestion}
+                                        onChange={(e) => setEditedQuestion(e.target.value)}
+                                        onBlur={() => toggleQuestionEditor(String(item.id))}
+                                    />
+                                ) : (
+                                    <div className="flex items-center w-full">{item.question}</div>
+                                )}
 
                             </td>
                             <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm col-answer">
+
                                 {editingAnswerId === String(item.id) ? (
-                                    <input
-                                        type="text"
-                                        className="px-5 py-5 border-b w-full border-gray-200 bg-white text-sm col-answer"
-                                        value={editedAnswer}
-                                        onChange={(e) => setEditedAnswer(e.target.value)}
-                                        onBlur={() => toggleAnswerEditor(String(item.id))}
+                                    <CKEditor
+                                        editor={ClassicEditor}
+                                        data={editedAnswer}
+                                        onChange={(event, editor) => {
+                                            const data = editor.getData();
+                                            setEditedAnswer(data);
+                                        }}
                                     />
                                 ) : (
                                     <div className="flex items-center w-full">{striptags(item.answer)}</div>
                                 )}
+
+
                             </td>
                             <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm col-action">
                                 <div className="flex justify-around items-center">

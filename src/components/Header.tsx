@@ -1,41 +1,82 @@
 import React, {useState} from "react";
-import {useToast} from './ToastContext';
-import {checkDuplicates} from "../store/reducers/APIDataReducer";
-import {useDispatch} from "react-redux";
+import FileUploadPopup from "./FileUploadPopup";
+import {checkDuplicates, convertCSVToJSONL, exportToJSONL, handleExportBackup} from "../models/APIManager";
+import BulkRemoveText from "./BulkRemoveText";
+import bulkRemoveText from "./BulkRemoveText";
 
 interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = () => {
-    const {handleCSVImport, handleJSONLImport, handleExport ,handleExportBackup} = useToast();
-
-    const dispatch = useDispatch();
-
     const [isOpen, setIsOpen] = useState(false);
+    const [showPopup, setShowPopup] = useState<'csv' | 'jsonl' | null>(null);
+
+    const handleCSVImportClick = () => {
+        setShowPopup('csv');
+    };
+
+    const handleJSONLImportClick = () => {
+        setShowPopup('jsonl');
+    };
+
+    const handleImportClose = () => {
+        setShowPopup(null);
+    };
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
     };
 
-    const handleCSVImportClick = () => {
-        handleCSVImport(); // Call the function to show the import popup
+    const handleCSVFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (files && files.length > 0) {
+            const file = files[0]; // Extract the first File object from the FileList
+            convertCSVToJSONL(file)
+                .then(data => {
+                    console.log('Response body data:', data);
+                })
+                .catch(error => {
+                    console.error('Error fetching QA data:', error);
+                });// Pass the file object to the action creator
+            // You can perform other file upload logic here if needed
+        }
     };
 
-    const handleJSONLImportClick = () => {
-        handleJSONLImport(); // Call the function to show the import popup
+    const handleJSONLFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        // Handle file upload logic here
+        const files = event.target.files;
+        if (files && files.length > 0) {
+            // Handle file upload logic here
+            console.log('File uploaded:', files[0]);
+        }
     };
+
 
     const handleExportClick = () => {
-        handleExport(); // Call the function to show the export popup
+        // handleExport(); // Call the function to show the export popup
+        exportToJSONL();
+
     };
 
     function handleExportClickBackup() {
-        handleExportBackup(); //
+        // handleExportBackup(); //
+        handleExportBackup();
     }
 
     const handleCheckDuplicates = () => {
-        dispatch(checkDuplicates());
+        checkDuplicates()
+            .then(data => {
+                console.log('Response body data:', data);
+            })
+            .catch(error => {
+                console.error('Error fetching QA data:', error);
+            });
     };
+
+    function bulkTextRemover() {
+        console.log('Bulk text remover');
+        bulkRemoveText();
+    }
 
     return (
         <header className="flex justify-between items-center bg-gray-900 text-white p-4">
@@ -86,6 +127,7 @@ const Header: React.FC<HeaderProps> = () => {
                                     >
                                         Import CSV to JSONL
                                     </a>
+
                                 </li>
                                 <li>
                                     <a
@@ -95,6 +137,7 @@ const Header: React.FC<HeaderProps> = () => {
                                     >
                                         Import JSONL to DB
                                     </a>
+
                                 </li>
                                 <li>
                                     <a
@@ -126,7 +169,7 @@ const Header: React.FC<HeaderProps> = () => {
                                 <li>
                                     <a
                                         href="#"
-
+                                        onClick={bulkTextRemover}
                                         className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                                     >
                                         Bulk Remove Text
@@ -147,6 +190,16 @@ const Header: React.FC<HeaderProps> = () => {
 
                 </div>
             </nav>
+            {showPopup && (
+                <FileUploadPopup
+                    handleCSVImportClose={handleImportClose}
+                    handleCSVFileUpload={handleCSVFileUpload}
+                    handleJSONLImportClose={handleImportClose}
+                    handleJSONLFileUpload={handleJSONLFileUpload}
+                    showCSVPopup={showPopup === 'csv'}
+                    showJSONLPopup={showPopup === 'jsonl'}
+                />
+            )}
         </header>
     );
 };
