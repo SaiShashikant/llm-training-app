@@ -1,5 +1,6 @@
 import {APIDataModel} from "./APIDataModel";
 import axios, {AxiosResponse} from "axios";
+import toast from "react-hot-toast";
 
 export const base_url = "http://localhost:5000/"
 
@@ -26,8 +27,6 @@ export async function qaData(page_num: number, rows_per_page: number, query_qa: 
 
 
 export async function checkDuplicates(): Promise<any> {
-    alert('Finding duplicates - Please wait...');
-
     fetch(base_url + '/api/duplicate_checker', {
         method: 'GET',
         headers: {
@@ -37,16 +36,17 @@ export async function checkDuplicates(): Promise<any> {
         .then(response => response.json())
         .then(data => {
             console.log('Duplicate checker response:', data);
-            alert('Task Completed - ' + data.message);
+            toast.success('Task completed successfully')
         })
         .catch(error => {
             console.error('Error:', error);
+            toast.error('Task unsuccessful')
         });
 }
 
 export async function updateAnswer(itemId: string, editedAnswer: string): Promise<any> {
 
-    fetch('http://localhost:5000/api/update_answer', {
+    fetch(base_url + '/api/update_answer', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -60,6 +60,27 @@ export async function updateAnswer(itemId: string, editedAnswer: string): Promis
         .catch(error => {
             console.error('Error:', error);
         });
+}
+
+export async function updateQuestion(itemId: string, editedQuestion: string): Promise<any> {
+
+    // Save the edited question
+    fetch(base_url + '/api/update_question', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({item_id: itemId, new_question: editedQuestion}),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Updated Question' + data);
+        })
+        .catch(error => {
+            console.log('Error updating question : ' + error); // Handle success or error message
+        });
+
+
 }
 
 export async function convertCSVToJSONL(file: any): Promise<any> {
@@ -77,6 +98,7 @@ export async function convertCSVToJSONL(file: any): Promise<any> {
             // Handle successful response
             console.log('Conversion response:', response.data, ", response ", response);
             // You can dispatch another action to update state if needed
+            toast.success("JSONL file created");
         })
         .catch(error => {
             // Handle error
@@ -93,10 +115,12 @@ export async function addNewQAPair(newQuestion: string, newAnswer: string): Prom
             .then(response => {
                 // If the request is successful, update the state with the new data
                 console.log("AddNewQaPair:: ", response);
+                toast.success("New Q&A pair added");
             })
             .catch(error => {
                 console.error('Error updating Q&A pair:', error);
                 // Handle error if needed
+                toast.error("Error updating Q&A pair");
             });
 
     }
@@ -119,8 +143,10 @@ export const exportToJSONL = async () => {
         link.click();
         // Clean up
         link.remove();
+        toast.success("Download successful");
     } catch (error) {
         console.error('Error exporting data to JSONL:', error);
+        toast.error("Error exporting data to JSONL");
     }
 };
 
@@ -135,11 +161,51 @@ export const handleExportBackup = async () => {
         link.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(link);
+        toast.success("Download successful");
     } catch (error) {
         console.error('Error:', error);
+        toast.error("Error Download");
     }
 };
 
-export const bulkRemoveText =async () =>{
-    
+export async function cleanItemsApi(text: string, isQuestion: boolean): Promise<any> {
+    const post_body = JSON.stringify({
+        'wrong_string': text,
+        'isQuestion': isQuestion,
+    });
+
+    return fetch(base_url + '/api/clean_items', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: post_body,
+    })
+        .then(response => response.json())
+        .catch(error => {
+            console.error('Error cleaning text:', error);
+            toast.error("Error cleaning text");
+        });
+}
+
+export async function deleteItem(itemId: string): Promise<any> {
+
+    fetch(base_url + '/api/delete_question/<int:item_id>', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({item_id: itemId}),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Updated Question' + data);
+            toast.success('Question deleted');
+        })
+        .catch(error => {
+            console.log('Error updating question : ' + error); // Handle success or error message
+            toast.error('Error deleting question');
+        });
+
+
 }

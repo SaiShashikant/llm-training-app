@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import FileUploadPopup from "./FileUploadPopup";
 import {checkDuplicates, convertCSVToJSONL, exportToJSONL, handleExportBackup} from "../models/APIManager";
 import BulkRemoveText from "./BulkRemoveText";
-import bulkRemoveText from "./BulkRemoveText";
+import toast from "react-hot-toast";
 
 interface HeaderProps {
 }
@@ -10,6 +10,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [showPopup, setShowPopup] = useState<'csv' | 'jsonl' | null>(null);
+    const [showBulkRemoveText, setShowBulkRemoveText] = useState(false);
 
     const handleCSVImportClick = () => {
         setShowPopup('csv');
@@ -34,9 +35,11 @@ const Header: React.FC<HeaderProps> = () => {
             convertCSVToJSONL(file)
                 .then(data => {
                     console.log('Response body data:', data);
+                    toast.success("File uploaded successfully");
                 })
                 .catch(error => {
                     console.error('Error fetching QA data:', error);
+                    toast.error(error);
                 });// Pass the file object to the action creator
             // You can perform other file upload logic here if needed
         }
@@ -48,6 +51,10 @@ const Header: React.FC<HeaderProps> = () => {
         if (files && files.length > 0) {
             // Handle file upload logic here
             console.log('File uploaded:', files[0]);
+            toast.success("File uploaded successfully");
+        }
+        else{
+            toast.error("File upload failed");
         }
     };
 
@@ -67,19 +74,21 @@ const Header: React.FC<HeaderProps> = () => {
         checkDuplicates()
             .then(data => {
                 console.log('Response body data:', data);
+                toast.success(data);
+
             })
             .catch(error => {
                 console.error('Error fetching QA data:', error);
+                toast.error(error);
             });
     };
 
-    function bulkTextRemover() {
-        console.log('Bulk text remover');
-        bulkRemoveText();
-    }
+    const bulkTextRemover = () => {
+        setShowBulkRemoveText(true);
+    };
 
     return (
-        <header className="flex justify-between items-center bg-gray-900 text-white p-4">
+        <header className="flex justify-between items-center bg-gray-900 text-black p-4">
             <nav className="max-w-full bg-gray-200 border-gray-200 dark:bg-gray-900 w-full rounded">
                 <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                     <span className="self-center flex items-center">
@@ -174,6 +183,7 @@ const Header: React.FC<HeaderProps> = () => {
                                     >
                                         Bulk Remove Text
                                     </a>
+                                    {showBulkRemoveText && <BulkRemoveText onClose={() => setShowBulkRemoveText(false)} />}
                                 </li>
                                 <li>
                                     <a

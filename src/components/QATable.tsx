@@ -7,8 +7,9 @@ import {setAPIDataReducer} from "../store/reducers/APIDataReducer";
 import AddQAPopup from "./AddQAPopup";
 import {CKEditor} from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-import {updateAnswer} from "../models/APIManager";
-
+import {deleteItem, updateAnswer, updateQuestion} from "../models/APIManager";
+import Pagination from "./Pagination";
+import toast from "react-hot-toast";
 
 const QATable: React.FC = () => {
     const apiData = useSelector((state: RootState) => state.apiData) as APIDataModel;
@@ -20,7 +21,6 @@ const QATable: React.FC = () => {
     const dispatch = useDispatch();
     const [showAddPopup, setShowAddPopup] = useState(false);
 
-
     useEffect(() => {
         // console.log('UseEffect of QATable',(apiData.items.length))
         dispatch(setAPIDataReducer(apiData));
@@ -28,34 +28,29 @@ const QATable: React.FC = () => {
     }, [dispatch, apiData]);
 
     // Calculate total number of pages
-    const totalPages = Math.ceil(apiData.items.length / apiData.total_results_count);
-
-    // Function to handle page change
-    const handlePageChange = (pageNumber: number) => {
-        // Ensure the new page number is within the valid range
-        if (pageNumber >= 1 && pageNumber <= totalPages) {
-            setCurrentPage(pageNumber);
-        }
-    };
+    const totalPages = Math.ceil(apiData.total_results_count / apiData.items.length);
+    console.log('Total pages', totalPages, "apiData.length", apiData.items.length, "apiData.total_results_count", apiData.total_results_count);
 
     const toggleQuestionEditor = (itemId: string) => {
         if (itemId === editingQuestionId) {
-            // Save the edited question
-            fetch('http://localhost:5000/api/update_question', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({item_id: itemId, new_question: editedQuestion}),
-            })
+            console.log("Edited question from fetch", editedQuestion, " ,Item ID: ", itemId);
+            updateQuestion(itemId, editedAnswer)
                 .then(response => response.json())
                 .then(data => {
                     console.log(data.message); // Handle success or error message
+                    toast.success("Question updated successfully");
+                    apiData.items = apiData.items.map(item => {
+                        if (item.id === parseInt(itemId)) {
+                            return {...item, question: editedQuestion};
+                        }
+                        return item;
+                    });
+                    dispatch(setAPIDataReducer(apiData));
                 })
                 .catch(error => {
-                    console.log('Error updating question : ' + error); // Handle success or error message
+                    console.error('Error updating Question : ' + error); // Handle success or error message
+                    toast.error("Question Not Updated");
                 });
-
             setEditingQuestionId(null);
         } else {
             // Enable editing
@@ -75,6 +70,7 @@ const QATable: React.FC = () => {
                 .then(response => response.json())
                 .then(data => {
                     console.log(data.message); // Handle success or error message
+                    toast.success("Answer Updated successfully");
                     apiData.items = apiData.items.map(item => {
                         if (item.id === parseInt(itemId)) {
                             return {...item, answer: editedAnswer};
@@ -84,7 +80,8 @@ const QATable: React.FC = () => {
                     dispatch(setAPIDataReducer(apiData));
                 })
                 .catch(error => {
-                    console.error('Error updating answer : ' + error); // Handle success or error message
+                    // console.error('Error updating answer : ' + error); // Handle success or error message
+                    toast.error("Answer Not Updated");
                 });
             setEditingAnswerId(null);
         } else {
@@ -96,10 +93,21 @@ const QATable: React.FC = () => {
         }
     };
 
-    const handleDelete = (itemId: number) => {
+    const handleDelete = (itemId: string) => {
         if (window.confirm('Are you sure you want to delete this item?')) {
-
+            deleteItem(itemId)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message); // Handle success or error message
+                    toast.success("Answer Updated successfully");
+                });
+            dispatch(setAPIDataReducer(apiData));
         }
+    };
+
+    const handlePageChange = (pageNumber: number) => {
+        // Update the current page number
+        setCurrentPage(pageNumber);
     };
 
     return (
@@ -218,7 +226,7 @@ const QATable: React.FC = () => {
 
                                     <button
                                         className="flex flex-col items-center gap-1 px-3 py-1 rounded-md focus:outline-none text-red-500 hover:text-red-800"
-                                        onClick={() => handleDelete(item.id)}
+                                        onClick={() => handleDelete(item.id.toString())}
                                     >
                                         <svg className="w-4 h-4 stroke-current" fill="none" stroke="currentColor"
                                              viewBox="0 0 24 24"
@@ -237,34 +245,8 @@ const QATable: React.FC = () => {
                 </table>
                 {/* Pagination Links */}
                 <div className="flex justify-end mt-4">
-                    {/* Previous Page Link */}
-                    <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="px-3 py-1 mx-1 border rounded bg-gray-200"
-                    >
-                        Previous
-                    </button>
-                    {/* Page Number Links */}
-                    {Array.from({length: totalPages}, (_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => handlePageChange(index + 1)}
-                            className={`px-3 py-1 mx-1 border rounded ${
-                                currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200'
-                            }`}
-                        >
-                            {index + 1}
-                        </button>
-                    ))}
-                    {/* Next Page Link */}
-                    <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="px-3 py-1 mx-1 border rounded bg-gray-200"
-                    >
-                        Next
-                    </button>
+                    <Pagination totalPages={totalPages} onPageChange={handlePageChange}/>
+
                 </div>
             </div>
         </div>

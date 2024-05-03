@@ -12,7 +12,8 @@ import {
     ls_query_qa,
     ls_rows_per_page
 } from "../utils/Constants";
-import QATable from "./QATable"; // Import the Toast component
+import QATable from "./QATable";
+import toast from "react-hot-toast"; // Import the Toast component
 
 
 const QABody: React.FC = () => {
@@ -50,6 +51,7 @@ const QABody: React.FC = () => {
             })
             .catch(error => {
                 console.error('Error fetching QA data:', error);
+                toast.error(error);
             });
     }, [dispatch, rowsPerPage, queryQA, queryAns, pageNumber  ]); // Run whenever dependencies change
 
@@ -97,6 +99,7 @@ const QABody: React.FC = () => {
         setQueryStringForQuestion("");
         localStorage.setItem(ls_query_qa, "");
         setPageNumber(1);
+        toast.success("Search Queries cleared");
     }
 
     return (
