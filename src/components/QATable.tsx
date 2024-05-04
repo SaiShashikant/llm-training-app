@@ -8,13 +8,11 @@ import AddQAPopup from "./AddQAPopup";
 import {CKEditor} from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import {deleteItem, updateAnswer, updateQuestion} from "../models/APIManager";
-import Pagination from "./Pagination";
 import toast from "react-hot-toast";
 
 
 const QATable: React.FC = () => {
     const apiData = useSelector((state: RootState) => state.apiData) as APIDataModel;
-    const [currentPage, setCurrentPage] = useState(1);
     const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
     const [editedQuestion, setEditedQuestion] = useState<string>('');
     const [editingAnswerId, setEditingAnswerId] = useState<string | null>(null);
@@ -31,9 +29,6 @@ const QATable: React.FC = () => {
 
     }, [dispatch, apiData]);
 
-    // Calculate total number of pages
-    const totalPages = Math.ceil(apiData.total_results_count / apiData.items.length);
-    // console.log('Total pages', totalPages, "apiData.length", apiData.items.length, "apiData.total_results_count", apiData.total_results_count);
 
     const toggleQuestionEditor = async (itemId: string) => {
         try {
@@ -122,12 +117,9 @@ const QATable: React.FC = () => {
         // console.log("Api UseEffcet for delete item")
         // console.log('UseEffect of QATable', change)
         setChange("");
-    }, [apiData , change , setChange]);
+    }, [apiData, change, setChange]);
 
-    const handlePageChange = (pageNumber: number) => {
-        // Update the current page number
-        setCurrentPage(pageNumber);
-    };
+
 
     return (
         <div className="w-full flex flex-col items-center">
@@ -280,10 +272,7 @@ const QATable: React.FC = () => {
                     </tbody>
                 </table>
                 {/* Pagination Links */}
-                <div className="flex justify-end mt-4">
-                    <Pagination totalPages={totalPages} onPageChange={handlePageChange}/>
 
-                </div>
             </div>
         </div>
     );

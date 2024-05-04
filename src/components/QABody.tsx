@@ -13,7 +13,8 @@ import {
     ls_rows_per_page
 } from "../utils/Constants";
 import QATable from "./QATable";
-import toast from "react-hot-toast"; // Import the Toast component
+import toast from "react-hot-toast";
+import Pagination from "./Pagination"; // Import the Toast component
 
 
 const QABody: React.FC = () => {
@@ -25,6 +26,8 @@ const QABody: React.FC = () => {
     const [queryAns, setQueryStringForAnswer] = useState(""); // Initialize rows per page state
     const maxPageValue = Math.ceil(apiData.total_results_count / apiData.qa_per_page) || 0; // Handle NaN
     const maxPageValueString = String(maxPageValue); // Cast to string
+    const totalPages = Math.ceil(apiData.total_results_count / apiData.items.length);
+    // console.log('Total pages', totalPages, "apiData.length", apiData.items.length, "apiData.total_results_count", apiData.total_results_count);
 
 
     useEffect(() => {
@@ -55,7 +58,7 @@ const QABody: React.FC = () => {
                 })
                 .catch(error => {
                     console.error('Error fetching QA data:', error);
-                    toast.error("Error fetching QA data");
+                    toast.error("Error fetching Data from the Server");
                 });
         } catch (error) {
             console.error('Caught an error:', error);
@@ -67,7 +70,6 @@ const QABody: React.FC = () => {
     }, [dispatch, rowsPerPage, queryQA, queryAns, pageNumber]);
 
 
-
     const handlePageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
 
@@ -76,6 +78,11 @@ const QABody: React.FC = () => {
             localStorage.setItem('page_num', "" + value);
         }
 
+    };
+
+    const onPageChange = (pageNumber: number) => {
+        // Update the current page number
+        setPageNumber(pageNumber);
     };
 
     const handleRowsPerPageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,6 +184,10 @@ const QABody: React.FC = () => {
                 </div>
             </div>
             <QATable/>
+            <div className="flex justify-center mt-4">
+                <Pagination totalPages={totalPages} onPageChange={onPageChange}/>
+
+            </div>
         </div>
 
 
