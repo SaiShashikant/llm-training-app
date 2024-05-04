@@ -11,6 +11,7 @@ import {deleteItem, updateAnswer, updateQuestion} from "../models/APIManager";
 import Pagination from "./Pagination";
 import toast from "react-hot-toast";
 
+
 const QATable: React.FC = () => {
     const apiData = useSelector((state: RootState) => state.apiData) as APIDataModel;
     const [currentPage, setCurrentPage] = useState(1);
@@ -20,6 +21,9 @@ const QATable: React.FC = () => {
     const [editedAnswer, setEditedAnswer] = useState<string>('');
     const dispatch = useDispatch();
     const [showAddPopup, setShowAddPopup] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [change, setChange] = useState('');
+
 
     useEffect(() => {
         // console.log('UseEffect of QATable',(apiData.items.length))
@@ -29,81 +33,96 @@ const QATable: React.FC = () => {
 
     // Calculate total number of pages
     const totalPages = Math.ceil(apiData.total_results_count / apiData.items.length);
-    console.log('Total pages', totalPages, "apiData.length", apiData.items.length, "apiData.total_results_count", apiData.total_results_count);
+    // console.log('Total pages', totalPages, "apiData.length", apiData.items.length, "apiData.total_results_count", apiData.total_results_count);
 
-    const toggleQuestionEditor = (itemId: string) => {
-        if (itemId === editingQuestionId) {
-            console.log("Edited question from fetch", editedQuestion, " ,Item ID: ", itemId);
-            updateQuestion(itemId, editedAnswer)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data.message); // Handle success or error message
-                    toast.success("Question updated successfully");
-                    apiData.items = apiData.items.map(item => {
-                        if (item.id === parseInt(itemId)) {
-                            return {...item, question: editedQuestion};
-                        }
-                        return item;
-                    });
-                    dispatch(setAPIDataReducer(apiData));
-                })
-                .catch(error => {
-                    console.error('Error updating Question : ' + error); // Handle success or error message
-                    toast.error("Question Not Updated");
+    const toggleQuestionEditor = async (itemId: string) => {
+        try {
+            if (itemId === editingQuestionId) {
+                // console.log("Edited question from fetch", editedQuestion, " ,Item ID: ", itemId);
+                const response = await updateQuestion(itemId, editedQuestion);
+                // Update the question in the local state
+                const updatedItems = apiData.items.map(item => {
+                    if (item.id === parseInt(itemId)) {
+                        return {...item, question: editedQuestion};
+                    }
+                    return item;
                 });
-            setEditingQuestionId(null);
-        } else {
-            // Enable editing
-            setEditingQuestionId(itemId);
-            console.log("else part editing")
-            // Get the current question text from your data source
-            const questionText = apiData.items.find(item => String(item.id) === itemId)?.question || '';
-            setEditedQuestion(questionText);
+                const updatedApiData = {...apiData, items: updatedItems};
+                // console.log("updated api data",updatedApiData.items);
+                dispatch(setAPIDataReducer(updatedApiData));
+
+                // Reset the editing state
+                setEditingQuestionId(null);
+            } else {
+                // Enable editing
+                setEditingQuestionId(itemId);
+                // console.log("else part editing")
+                // Get the current question text from your data source
+                const questionText = apiData.items.find(item => String(item.id) === itemId)?.question || '';
+                setEditedQuestion(questionText);
+            }
+        } catch (error) {
+            console.error('Error updating Question:', error);
+            toast.error("Question Not Updated");
         }
     };
 
-    const toggleAnswerEditor = (itemId: string) => {
-        if (itemId === editingAnswerId) {
-            // Save the edited answer
-            console.log("Edited answer from fetch", editedAnswer, " ,Item ID: ", itemId);
-            updateAnswer(itemId, editedAnswer)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data.message); // Handle success or error message
-                    toast.success("Answer Updated successfully");
-                    apiData.items = apiData.items.map(item => {
-                        if (item.id === parseInt(itemId)) {
-                            return {...item, answer: editedAnswer};
-                        }
-                        return item;
-                    });
-                    dispatch(setAPIDataReducer(apiData));
-                })
-                .catch(error => {
-                    // console.error('Error updating answer : ' + error); // Handle success or error message
-                    toast.error("Answer Not Updated");
+
+    const toggleAnswerEditor = async (itemId: string) => {
+        try {
+            if (itemId === editingAnswerId) {
+                // Save the edited answer
+                // console.log("Edited answer from fetch", editedAnswer, " ,Item ID: ", itemId);
+                const response = await updateAnswer(itemId, editedAnswer);
+                // Update the answer in the local state
+                const updatedItems = apiData.items.map(item => {
+                    if (item.id === parseInt(itemId)) {
+                        return {...item, answer: editedAnswer};
+                    }
+                    return item;
                 });
-            setEditingAnswerId(null);
-        } else {
-            // Enable editing
-            setEditingAnswerId(itemId);
-            // Get the current answer text from your data source
-            const answerText = apiData.items.find(item => String(item.id) === itemId)?.answer || '';
-            setEditedAnswer(answerText);
+                const updatedApiData = {...apiData, items: updatedItems};
+                toast.success("Answer Updated successfully");
+
+                dispatch(setAPIDataReducer(updatedApiData));
+
+                // Reset the editing state
+                setEditingAnswerId(null);
+            } else {
+                // Enable editing
+                setEditingAnswerId(itemId);
+                // Get the current answer text from your data source
+                const answerText = apiData.items.find(item => String(item.id) === itemId)?.answer || '';
+                setEditedAnswer(answerText);
+            }
+        } catch (error) {
+            console.error('Error updating answer:', error);
+            toast.error("Answer Not Updated");
         }
     };
 
     const handleDelete = (itemId: string) => {
-        if (window.confirm('Are you sure you want to delete this item?')) {
-            deleteItem(itemId)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data.message); // Handle success or error message
-                    toast.success("Answer Updated successfully");
-                });
-            dispatch(setAPIDataReducer(apiData));
-        }
+        setShowConfirm(true);
     };
+    const confirmDelete = (itemId: string) => {
+        deleteItem(itemId)
+            .then(data => {
+                // console.log(data.message); // Handle success or error message
+                dispatch(setAPIDataReducer(apiData));
+                setChange("ConfirmDelete");
+                setShowConfirm(false); // Hide the confirmation button after deletion
+            })
+            .catch(error => {
+                console.error('Error deleting item:', error);
+                setShowConfirm(false); // Hide the confirmation button on error
+            });
+    };
+
+    useEffect(() => {
+        // console.log("Api UseEffcet for delete item")
+        // console.log('UseEffect of QATable', change)
+        setChange("");
+    }, [apiData , change , setChange]);
 
     const handlePageChange = (pageNumber: number) => {
         // Update the current page number
@@ -163,7 +182,7 @@ const QATable: React.FC = () => {
                                         className="px-5 py-5 border-b w-full border-gray-200 bg-white text-sm col-question"
                                         value={editedQuestion}
                                         onChange={(e) => setEditedQuestion(e.target.value)}
-                                        onBlur={() => toggleQuestionEditor(String(item.id))}
+                                        // onBlur={() => toggleQuestionEditor(String(item.id))}
                                     />
                                 ) : (
                                     <div className="flex items-center w-full">{item.question}</div>
@@ -224,18 +243,35 @@ const QATable: React.FC = () => {
                                         )}
                                     </button>
 
-                                    <button
-                                        className="flex flex-col items-center gap-1 px-3 py-1 rounded-md focus:outline-none text-red-500 hover:text-red-800"
-                                        onClick={() => handleDelete(item.id.toString())}
-                                    >
-                                        <svg className="w-4 h-4 stroke-current" fill="none" stroke="currentColor"
-                                             viewBox="0 0 24 24"
-                                             xmlns="http://www.w3.org/2000/svg">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                  d="M6 18L18 6M6 6l12 12"/>
-                                        </svg>
-                                        <span>Delete Row</span>
-                                    </button>
+                                    {!showConfirm && (
+                                        <button
+                                            className="flex flex-col items-center gap-1 px-3 py-1 rounded-md focus:outline-none text-red-500 hover:text-red-800"
+                                            onClick={() => handleDelete(item.id.toString())}
+                                        >
+                                            <svg className="w-4 h-4 stroke-current" fill="none" stroke="currentColor"
+                                                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                                      d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                            <span>Delete Row</span>
+                                        </button>
+                                    )}
+                                    {showConfirm && (
+                                        <div className="flex gap-2">
+                                            <button
+                                                className="px-3 py-1 rounded-md focus:outline-none bg-red-500 text-red-700 hover:bg-red-600"
+                                                onClick={() => confirmDelete(item.id.toString())}
+                                            >
+                                                Confirm
+                                            </button>
+                                            <button
+                                                className="px-3 py-1 rounded-md focus:outline-none bg-gray-300 hover:bg-gray-400"
+                                                onClick={() => setShowConfirm(false)}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    )}
 
                                 </div>
                             </td>

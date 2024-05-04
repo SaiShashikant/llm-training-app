@@ -15,10 +15,10 @@ const AddQAPopup: React.FC<AddQAPopupProps> = ({onClose}) => {
         // Dispatch updateQAPair action with item ID, new question, and new answer
 
         // setNewQuestion(document.getElementById("new_question").innerHTML)
-        console.log('NewQuestion: ' + newQuestion, 'NewAnswer: ' + newAnswer);
+        // console.log('NewQuestion: ' + newQuestion, 'NewAnswer: ' + newAnswer);
         addNewQAPair(newQuestion, newAnswer)
             .then(data => {
-                console.log('Response body data:', data);
+                // console.log('Response body data:', data);
             })
             .catch(error => {
                 console.error('Error fetching QA data:', error);

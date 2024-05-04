@@ -34,11 +34,13 @@ const Header: React.FC<HeaderProps> = () => {
             const file = files[0]; // Extract the first File object from the FileList
             convertCSVToJSONL(file)
                 .then(data => {
-                    console.log('Response body data:', data);
+                    // console.log('Response body data:', data);
                     toast.success("File uploaded successfully");
+                    setShowPopup(null);
+                    event.target.value = '';
                 })
                 .catch(error => {
-                    console.error('Error fetching QA data:', error);
+                    // console.error('Error fetching QA data:', error);
                     toast.error(error);
                 });// Pass the file object to the action creator
             // You can perform other file upload logic here if needed
@@ -50,10 +52,11 @@ const Header: React.FC<HeaderProps> = () => {
         const files = event.target.files;
         if (files && files.length > 0) {
             // Handle file upload logic here
-            console.log('File uploaded:', files[0]);
+            // console.log('File uploaded:', files[0]);
             toast.success("File uploaded successfully");
-        }
-        else{
+            setShowPopup(null);
+            event.target.value = '';
+        } else {
             toast.error("File upload failed");
         }
     };
@@ -73,12 +76,12 @@ const Header: React.FC<HeaderProps> = () => {
     const handleCheckDuplicates = () => {
         checkDuplicates()
             .then(data => {
-                console.log('Response body data:', data);
+                // console.log('Response body data:', data);
                 toast.success(data);
 
             })
             .catch(error => {
-                console.error('Error fetching QA data:', error);
+                // console.error('Error fetching QA data:', error);
                 toast.error(error);
             });
     };
@@ -183,7 +186,8 @@ const Header: React.FC<HeaderProps> = () => {
                                     >
                                         Bulk Remove Text
                                     </a>
-                                    {showBulkRemoveText && <BulkRemoveText onClose={() => setShowBulkRemoveText(false)} />}
+                                    {showBulkRemoveText &&
+                                        <BulkRemoveText onClose={() => setShowBulkRemoveText(false)}/>}
                                 </li>
                                 <li>
                                     <a

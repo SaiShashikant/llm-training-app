@@ -13,7 +13,7 @@ const BulkRemoveText: React.FC<BulkRemoveTextPopupProps> = ({ onClose }) => {
 
     const processCleanText = () => {
         // Call the API to clean the items
-        console.log('Processing' , category, statusMessage ,text);
+        // console.log('Processing' , category, statusMessage ,text);
         cleanItemsApi(text, category === 'questions')
             .then(data => {
                 setStatusMessage(`${data.message}\nCleaned ${data.total_items}. Found text in ${data.items_with_text} items.`);

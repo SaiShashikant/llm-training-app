@@ -75,9 +75,11 @@ export async function updateQuestion(itemId: string, editedQuestion: string): Pr
         .then(response => response.json())
         .then(data => {
             console.log('Updated Question' + data);
+            toast.success("Question updated successfully");
         })
         .catch(error => {
             console.log('Error updating question : ' + error); // Handle success or error message
+            toast.error("Question Not Updated");
         });
 
 
@@ -143,7 +145,7 @@ export const exportToJSONL = async () => {
         link.click();
         // Clean up
         link.remove();
-        toast.success("Download successful");
+        toast.success("JSONL File Download successful");
     } catch (error) {
         console.error('Error exporting data to JSONL:', error);
         toast.error("Error exporting data to JSONL");
@@ -161,7 +163,7 @@ export const handleExportBackup = async () => {
         link.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(link);
-        toast.success("Download successful");
+        toast.success("Database Backup successful");
     } catch (error) {
         console.error('Error:', error);
         toast.error("Error Download");
@@ -189,23 +191,33 @@ export async function cleanItemsApi(text: string, isQuestion: boolean): Promise<
 }
 
 export async function deleteItem(itemId: string): Promise<any> {
-
-    fetch(base_url + '/api/delete_question/<int:item_id>', {
+    return fetch(base_url + '/api/delete_question/' + itemId, { // Changed <int:item_id> to itemId
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({item_id: itemId}),
+        body: JSON.stringify({ item_id: itemId }),
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to delete item'); // Throw an error if the response is not ok
+            }
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json(); // Parse JSON if the response is in JSON format
+            } else {
+                return { message: 'Item deleted successfully' }; // Return a dummy response if not in JSON format
+            }
+        })
         .then(data => {
-            console.log('Updated Question' + data);
+            // console.log('Updated Question:', data);
             toast.success('Question deleted');
+            return data; // Return the data if needed
         })
         .catch(error => {
-            console.log('Error updating question : ' + error); // Handle success or error message
+            console.error('Error deleting question:', error); // Log the error
             toast.error('Error deleting question');
+            throw error; // Rethrow the error to propagate it further if needed
         });
-
-
 }
+

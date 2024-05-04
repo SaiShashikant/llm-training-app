@@ -23,7 +23,9 @@ const QABody: React.FC = () => {
     const [rowsPerPage, setRowsPerPage] = useState(default_rows_per_page); // Initialize rows per page state
     const [queryQA, setQueryStringForQuestion] = useState(""); // Initialize rows per page state
     const [queryAns, setQueryStringForAnswer] = useState(""); // Initialize rows per page state
-    const maxPageValue = Math.ceil(apiData.total_results_count / apiData.qa_per_page);
+    const maxPageValue = Math.ceil(apiData.total_results_count / apiData.qa_per_page) || 0; // Handle NaN
+    const maxPageValueString = String(maxPageValue); // Cast to string
+
 
     useEffect(() => {
         // Load all the variables from local storage
@@ -31,29 +33,39 @@ const QABody: React.FC = () => {
         const storedRowsPerPage = parseInt(localStorage.getItem(ls_rows_per_page) || default_rows_per_page.toString());
         const storedQueryQA = localStorage.getItem(ls_query_qa) || "";
         const storedQueryAns = localStorage.getItem(ls_query_ans) || "";
-        console.log('UseEffect blank values -- Page number', storedPageNumber, "Rows Per Page Number", storedRowsPerPage);
-        console.log('UseEffect blank values -- Set Values  Page number', pageNumber, "Rows Per Page Number", rowsPerPage);
+        // console.log('UseEffect blank values -- Page number', storedPageNumber, "Rows Per Page Number", storedRowsPerPage);
+        // console.log('UseEffect blank values -- Set Values  Page number', pageNumber, "Rows Per Page Number", rowsPerPage);
         // Update state with stored values
         setPageNumber(storedPageNumber);
         setRowsPerPage(storedRowsPerPage);
         setQueryStringForQuestion(storedQueryQA);
         setQueryStringForAnswer(storedQueryAns);
+
     }, []); // Run only on initial component mount
 
     useEffect(() => {
-        console.log('UseEffect 2nd time  values -- Page number', pageNumber, "Rows Per Page Number", rowsPerPage);
-        qaData(pageNumber, rowsPerPage, queryQA, queryAns)
-            .then(data => {
-                dispatch(setAPIDataReducer(data));
-                console.log('Response body data:', data.items.length);
-                console.log('Response body data - Total count:', data.total_results_count);
+        // console.log('UseEffect 2nd time values -- Page number', pageNumber, "Rows Per Page Number", rowsPerPage);
 
-            })
-            .catch(error => {
-                console.error('Error fetching QA data:', error);
-                toast.error(error);
-            });
-    }, [dispatch, rowsPerPage, queryQA, queryAns, pageNumber  ]); // Run whenever dependencies change
+        try {
+            qaData(pageNumber, rowsPerPage, queryQA, queryAns)
+                .then(data => {
+                    dispatch(setAPIDataReducer(data));
+                    // console.log('Response body data:', data.items.length);
+                    // console.log('Response body data - Total count:', data.total_results_count);
+                })
+                .catch(error => {
+                    console.error('Error fetching QA data:', error);
+                    toast.error("Error fetching QA data");
+                });
+        } catch (error) {
+            console.error('Caught an error:', error);
+            toast.error("Caught an error");
+        }
+
+        // console.log('UseEffect 2nd time values after try catch -- Page number', pageNumber, "Rows Per Page Number", rowsPerPage);
+
+    }, [dispatch, rowsPerPage, queryQA, queryAns, pageNumber]);
+
 
 
     const handlePageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +93,7 @@ const QABody: React.FC = () => {
         localStorage.setItem(ls_query_qa, "" + value);
         localStorage.setItem(ls_page_num, "" + 1);
         setPageNumber(1);
-        console.log('handleQASearchChange changed', value);
+        // console.log('handleQASearchChange changed', value);
     };
     const handleAnsSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -89,7 +101,7 @@ const QABody: React.FC = () => {
         localStorage.setItem(ls_query_ans, "" + value);
         localStorage.setItem(ls_page_num, "" + 1);
         setPageNumber(1);
-        console.log('handleAnsSearchChange changed', value);
+        // console.log('handleAnsSearchChange changed', value);
     };
 
 
@@ -117,7 +129,7 @@ const QABody: React.FC = () => {
                                     onChange={handlePageChange}
                                     className="w-20 md:w-32 h-10 mr-3 rounded-lg bg-gray-100 text-gray-700 px-4 py-2.5 dark:bg-gray-600 dark:text-gray-300 dark:placeholder-gray-400 p-2 m-2"
                                     pattern="[1-9]\d*"
-                                    max={maxPageValue}
+                                    max={maxPageValueString}
                                     required
                                 />
                             </div>

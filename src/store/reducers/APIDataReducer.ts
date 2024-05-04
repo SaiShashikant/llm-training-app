@@ -29,13 +29,6 @@ const apiDataSlice = createSlice({
             state.total_results_count = action.payload.total_results_count;
         },
 
-        setRowsPerPage(state, action: PayloadAction<number>) {
-            state.qa_per_page = action.payload;
-        },
-        deleteQAPair(state, action: PayloadAction<number>) {
-            state.items = state.items.filter(item => item.id !== action.payload);
-        },
-
     }
 });
 
